@@ -5,7 +5,6 @@ import Main from './Main'
 import Web3 from 'web3';
 import './App.css';
 
-//Declare IPFS
 const ipfsClient = require('ipfs-http-client')
 const ipfs = ipfsClient({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' }) // leaving out the arguments will default to these values
 
@@ -31,35 +30,30 @@ class App extends Component {
 
   async loadBlockchainData() {
     const web3 = window.web3
-    console.log(web3);
-    //Load account
+    // Load account
     const accounts = await web3.eth.getAccounts()
-    this.setState({ account: accounts[0]})
-    //Network ID
+    this.setState({ account: accounts[0] })
+    // Network ID
     const networkId = await web3.eth.net.getId()
     const networkData = DeStor.networks[networkId]
     if(networkData) {
-    //IF got connection, get data from contracts
-      //Assign contract
+      // Assign contract
       const destor = new web3.eth.Contract(DeStor.abi, networkData.address)
       this.setState({ destor })
-      //Get files amount
+      // Get files amount
       const filesCount = await destor.methods.fileCount().call()
       this.setState({ filesCount })
-      //Load files&sort by the newest
+      // Load files&sort by the newest
       for (var i = filesCount; i >= 1; i--) {
         const file = await destor.methods.files(i).call()
         this.setState({
           files: [...this.state.files, file]
         })
       }
-    //Else
-      //alert Error
     } else {
       window.alert('DeStor contract not deployed to detected network.')
     }
   }
-  
 
   // Get file from user
   captureFile = event => {
@@ -79,13 +73,12 @@ class App extends Component {
     }
   }
 
-
   uploadFile = description => {
     console.log("Submitting file to IPFS...")
 
     // Add file to the IPFS
     ipfs.add(this.state.buffer, (error, result) => {
-      console.log('IPFS result', result.size)
+      console.log('IPFS result', result)
       if(error) {
         console.error(error)
         return
@@ -110,7 +103,6 @@ class App extends Component {
     })
   }
 
-  //Set states
   constructor(props) {
     super(props)
     this.state = {
@@ -121,8 +113,8 @@ class App extends Component {
       type: null,
       name: null
     }
-
-    //Bind functions
+    this.uploadFile = this.uploadFile.bind(this)
+    this.captureFile = this.captureFile.bind(this)
   }
 
   render() {
